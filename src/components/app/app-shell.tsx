@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type React from "react";
 import { LogoutButton } from "@/components/app/logout-button";
+import { BuildStamp } from "@/components/app/build-stamp";
 
 export type AppShellNavItem = {
   href: string;
@@ -52,6 +53,9 @@ export function AppShell({
 
             <div className="mt-4 border-t border-zinc-200 pt-4">
               <LogoutButton className="w-full" />
+              <div className="mt-3">
+                <BuildStamp />
+              </div>
             </div>
           </div>
         </aside>
