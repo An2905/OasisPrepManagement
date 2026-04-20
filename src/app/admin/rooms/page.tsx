@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import type { RoomStatus } from "@prisma/client";
+import { StartCheckoutButton } from "@/app/admin/rooms/start-checkout-button";
 
 export const dynamic = "force-dynamic";
 
@@ -64,9 +65,14 @@ export default async function AdminRoomsPage() {
                     {r.tasks[0]?.assignedTo?.displayName ?? "-"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm">
-                      Sửa
-                    </Button>
+                    <div className="inline-flex gap-2">
+                      {r.status !== "CheckOutProcessing" ? (
+                        <StartCheckoutButton roomId={r.roomId} />
+                      ) : null}
+                      <Button variant="ghost" size="sm">
+                        Sửa
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
