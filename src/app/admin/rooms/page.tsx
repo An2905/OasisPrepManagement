@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import type { RoomStatus } from "@prisma/client";
 import { StartCheckoutButton } from "@/app/admin/rooms/start-checkout-button";
 import { RoomCreateInline } from "@/app/admin/rooms/room-create";
+import { RoomActions } from "@/app/admin/rooms/room-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -71,9 +71,13 @@ export default async function AdminRoomsPage() {
                       {r.status !== "CheckOutProcessing" ? (
                         <StartCheckoutButton roomId={r.roomId} />
                       ) : null}
-                      <Button variant="ghost" size="sm">
-                        Sửa
-                      </Button>
+                      <RoomActions
+                        id={r.id}
+                        location={r.location}
+                        roomClassId={r.roomClassId}
+                        roomClasses={roomClasses}
+                        canDelete={r.tasks.length === 0}
+                      />
                     </div>
                   </td>
                 </tr>

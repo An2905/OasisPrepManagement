@@ -3,6 +3,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import {
   CreateStaffInline,
+  EditStaffInline,
   ResetPasswordInline,
   ToggleActiveButton,
 } from "@/app/admin/employees/employee-actions";
@@ -52,6 +53,11 @@ export default async function AdminEmployeesPage() {
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-2">
                       <ToggleActiveButton userId={e.id} active={e.active} />
+                      <EditStaffInline
+                        userId={e.id}
+                        username={e.username}
+                        displayName={e.displayName}
+                      />
                       <ResetPasswordInline userId={e.id} />
                     </div>
                   </td>

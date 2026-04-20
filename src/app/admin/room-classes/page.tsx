@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/prisma";
 import { RoomClassCreateInline } from "@/app/admin/room-classes/room-class-create";
+import { RoomClassActions } from "@/app/admin/room-classes/room-class-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -54,13 +54,14 @@ export default async function AdminRoomClassesPage() {
                     ) : null}
                   </div>
                 </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button variant="secondary" disabled>
-                    Sửa
-                  </Button>
-                  <Button variant="danger" disabled>
-                    Xoá
-                  </Button>
+                <div className="shrink-0">
+                  <RoomClassActions
+                    id={c.id}
+                    name={c.name}
+                    location={c.location}
+                    checklist={c.checklist.map((x) => x.label)}
+                    canDelete={c._count.rooms === 0}
+                  />
                 </div>
               </div>
             </div>

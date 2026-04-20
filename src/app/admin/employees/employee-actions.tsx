@@ -152,3 +152,67 @@ export function ResetPasswordInline({ userId }: { userId: string }) {
   );
 }
 
+export function EditStaffInline({
+  userId,
+  username: initialUsername,
+  displayName: initialDisplayName,
+}: {
+  userId: string;
+  username: string;
+  displayName: string;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [username, setUsername] = useState(initialUsername);
+  const [displayName, setDisplayName] = useState(initialDisplayName);
+  const [loading, setLoading] = useState(false);
+
+  async function onSave() {
+    setLoading(true);
+    try {
+      await fetch("/api/admin/staff/update", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ userId, username, displayName }),
+      });
+      setOpen(false);
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="inline-flex items-center gap-2">
+      {open ? (
+        <>
+          <Input
+            className="h-9 w-28"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <Input
+            className="h-9 w-44"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+          />
+          <Button
+            size="sm"
+            onClick={onSave}
+            disabled={!username.trim() || !displayName.trim() || loading}
+          >
+            {loading ? "..." : "Lưu"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={loading}>
+            Huỷ
+          </Button>
+        </>
+      ) : (
+        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          Sửa
+        </Button>
+      )}
+    </div>
+  );
+}
+
