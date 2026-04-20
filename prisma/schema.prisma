@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  STAFF
+}
+
+enum RoomStatus {
+  Ready
+  CheckedIn
+  CheckOutProcessing
+}
+
+enum CheckOutTaskStatus {
+  Assigned
+  InProgress
+  Completed
+  Cancelled
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  displayName  String
+  passwordHash String
+  role         UserRole
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions      Session[]
+  assignedTasks CheckOutTask[] @relation("AssignedTasks")
+  completedTasks CheckOutTask[] @relation("CompletedTasks")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model RoomClass {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  location  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rooms     Room[]
+  checklist RoomClassChecklistItem[]
+  kpiTargets KpiTarget[]
+}
+
+model RoomClassChecklistItem {
+  id          String   @id @default(cuid())
+  roomClassId String
+  label       String
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  roomClass RoomClass @relation(fields: [roomClassId], references: [id], onDelete: Cascade)
+
+  @@unique([roomClassId, label])
+  @@index([roomClassId, sortOrder])
+}
+
+model Room {
+  id         String     @id @default(cuid())
+  roomId     String     @unique
+  location   String
+  status     RoomStatus @default(Ready)
+  roomClassId String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  roomClass RoomClass @relation(fields: [roomClassId], references: [id], onDelete: Restrict)
+  tasks     CheckOutTask[]
+}
+
+model CheckOutTask {
+  id            String            @id @default(cuid())
+  roomId        String
+  assignedToId  String
+  status        CheckOutTaskStatus @default(Assigned)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  notes         String            @default("")
+  signatureName String            @default("")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  room       Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  assignedTo User @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: Restrict)
+  completedBy User? @relation("CompletedTasks", fields: [completedById], references: [id], onDelete: SetNull)
+  completedById String?
+
+  checklistResults CheckOutChecklistResult[]
+
+  @@index([roomId, status])
+  @@index([assignedToId, status])
+  @@index([createdAt])
+}
+
+model CheckOutChecklistResult {
+  id          String   @id @default(cuid())
+  taskId      String
+  label       String
+  ok          Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  task CheckOutTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, label])
+  @@index([taskId])
+}
+
+model KpiTarget {
+  id          String   @id @default(cuid())
+  roomClassId String
+  targetMinutes Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roomClass RoomClass @relation(fields: [roomClassId], references: [id], onDelete: Cascade)
+
+  @@unique([roomClassId])
+}

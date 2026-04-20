@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OasisRecepManagement (web)
 
-## Getting Started
+Web app quản lý nhân viên, trạng thái phòng, checkout checklist và KPI (Admin/Staff).
 
-First, run the development server:
+## Local development
+
+### 1) Cài dependencies
+
+```bash
+cd web
+npm install
+```
+
+### 2) Set `DATABASE_URL`
+
+Tạo Postgres (local hoặc Railway) và set biến môi trường:
+
+```bash
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+```
+
+### 3) Migrate + seed
+
+```bash
+npm run prisma:migrate
+npm run prisma:seed
+```
+
+### 4) Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Mở `http://localhost:3000/login`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tài khoản seed để test
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Admin: `admin` / `admin123`
+- Staff: `nv01` / `nv123`
 
-## Learn More
+## Deploy Railway (gợi ý)
 
-To learn more about Next.js, take a look at the following resources:
+- **Variables**: set `DATABASE_URL` (Railway Postgres)
+- **Build**: `npm run build`
+- **Start**: `npm run start`
+- **Post-deploy**: chạy `npm run prisma:migrate` và `npm run prisma:seed` (một lần)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
