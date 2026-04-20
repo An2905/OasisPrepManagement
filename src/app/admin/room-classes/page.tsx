@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { prisma } from "@/lib/prisma";
+import { RoomClassCreateInline } from "@/app/admin/room-classes/room-class-create";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +20,11 @@ export default async function AdminRoomClassesPage() {
       <CardHeader
         title="Hạng phòng & checklist"
         subtitle="Danh sách hạng phòng và checklist dùng khi checkout."
-        right={<Button>+ Tạo hạng phòng</Button>}
       />
       <CardBody>
+        <div className="mb-5 rounded-2xl border border-zinc-200 bg-white p-4">
+          <RoomClassCreateInline />
+        </div>
         <div className="grid gap-4">
           {classes.map((c) => (
             <div
@@ -52,8 +55,12 @@ export default async function AdminRoomClassesPage() {
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  <Button variant="secondary">Sửa</Button>
-                  <Button variant="danger">Xoá</Button>
+                  <Button variant="secondary" disabled>
+                    Sửa
+                  </Button>
+                  <Button variant="danger" disabled>
+                    Xoá
+                  </Button>
                 </div>
               </div>
             </div>

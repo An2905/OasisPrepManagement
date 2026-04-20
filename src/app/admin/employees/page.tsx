@@ -1,7 +1,11 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
+import {
+  CreateStaffInline,
+  ResetPasswordInline,
+  ToggleActiveButton,
+} from "@/app/admin/employees/employee-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +20,11 @@ export default async function AdminEmployeesPage() {
       <CardHeader
         title="Nhân viên"
         subtitle="Admin tạo tài khoản nhân viên (username/password), bật/tắt hoạt động."
-        right={<Button>+ Tạo tài khoản</Button>}
       />
       <CardBody>
+        <div className="mb-5 rounded-2xl border border-zinc-200 bg-white p-4">
+          <CreateStaffInline />
+        </div>
         <div className="overflow-hidden rounded-2xl border border-zinc-200">
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-xs font-medium text-zinc-600">
@@ -45,12 +51,8 @@ export default async function AdminEmployeesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        Reset mật khẩu
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        Sửa
-                      </Button>
+                      <ToggleActiveButton userId={e.id} active={e.active} />
+                      <ResetPasswordInline userId={e.id} />
                     </div>
                   </td>
                 </tr>

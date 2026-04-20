@@ -4,6 +4,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import type { RoomStatus } from "@prisma/client";
 import { StartCheckoutButton } from "@/app/admin/rooms/start-checkout-button";
+import { RoomCreateInline } from "@/app/admin/rooms/room-create";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,10 @@ function statusBadge(status: RoomStatus) {
 }
 
 export default async function AdminRoomsPage() {
+  const roomClasses = await prisma.roomClass.findMany({
+    select: { id: true, name: true, location: true },
+    orderBy: { name: "asc" },
+  });
   const rooms = await prisma.room.findMany({
     orderBy: [{ location: "asc" }, { roomId: "asc" }],
     include: {
@@ -32,14 +37,11 @@ export default async function AdminRoomsPage() {
       <CardHeader
         title="Phòng"
         subtitle="CRUD phòng theo hạng phòng. Khi chuyển trạng thái checkout, hệ thống sẽ tự phân nhân viên."
-        right={
-          <div className="flex gap-2">
-            <Button variant="secondary">+ Thêm phòng</Button>
-            <Button>+ Import nhanh</Button>
-          </div>
-        }
       />
       <CardBody>
+        <div className="mb-5 rounded-2xl border border-zinc-200 bg-white p-4">
+          <RoomCreateInline roomClasses={roomClasses} />
+        </div>
         <div className="overflow-hidden rounded-2xl border border-zinc-200">
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-50 text-xs font-medium text-zinc-600">
