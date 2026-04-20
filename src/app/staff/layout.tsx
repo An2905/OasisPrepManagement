@@ -15,6 +15,7 @@ export default async function StaffLayout({
     <AppShell
       title="Nhân viên"
       roleLabel="Nhân viên"
+      userName={user.displayName}
       nav={[
         { href: "/staff/rooms", label: "Danh sách phòng" },
         { href: "/staff/my-tasks", label: "Task của tôi" },

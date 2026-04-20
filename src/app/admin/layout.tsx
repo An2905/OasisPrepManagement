@@ -15,6 +15,7 @@ export default async function AdminLayout({
     <AppShell
       title="Admin"
       roleLabel="Admin"
+      userName={user.displayName}
       nav={[
         { href: "/admin/dashboard", label: "Dashboard" },
         { href: "/admin/room-classes", label: "Hạng phòng & checklist" },

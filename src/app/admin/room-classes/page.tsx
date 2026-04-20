@@ -1,37 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { prisma } from "@/lib/prisma";
 
-const classes = [
-  {
-    id: "deluxe",
-    name: "Deluxe",
-    location: "Khu A",
-    rooms: 12,
-    checklist: ["Remote TV", "Khăn tắm", "Dép", "Minibar", "Máy sấy tóc"],
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    location: "Khu B",
-    rooms: 8,
-    checklist: ["Remote TV", "Khăn tắm", "Dép", "Minibar", "Két sắt", "Áo choàng"],
-  },
-  {
-    id: "villa",
-    name: "Villa",
-    location: "Khu C",
-    rooms: 4,
-    checklist: ["Remote TV", "Khăn tắm", "Dép", "Minibar", "Bếp", "Bồn tắm", "Loa"],
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function AdminRoomClassesPage() {
+export default async function AdminRoomClassesPage() {
+  const classes = await prisma.roomClass.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      _count: { select: { rooms: true, checklist: true } },
+      checklist: { orderBy: [{ sortOrder: "asc" }, { label: "asc" }] },
+    },
+  });
+
   return (
     <Card>
       <CardHeader
         title="Hạng phòng & checklist"
-        subtitle="Admin tạo hạng phòng; mỗi hạng phòng có checklist đồ để nhân viên check khi checkout."
+        subtitle="Danh sách hạng phòng và checklist dùng khi checkout."
         right={<Button>+ Tạo hạng phòng</Button>}
       />
       <CardBody>
@@ -48,15 +35,15 @@ export default function AdminRoomClassesPage() {
                       {c.name}
                     </div>
                     <Badge variant="neutral">{c.location}</Badge>
-                    <Badge variant="blue">{c.rooms} phòng</Badge>
+                    <Badge variant="blue">{c._count.rooms} phòng</Badge>
                   </div>
                   <div className="mt-2 text-sm text-zinc-600">
-                    Checklist ({c.checklist.length} mục)
+                    Checklist ({c._count.checklist} mục)
                   </div>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {c.checklist.slice(0, 6).map((it) => (
-                      <Badge key={it} variant="neutral">
-                        {it}
+                      <Badge key={it.id} variant="neutral">
+                        {it.label}
                       </Badge>
                     ))}
                     {c.checklist.length > 6 ? (
@@ -71,6 +58,11 @@ export default function AdminRoomClassesPage() {
               </div>
             </div>
           ))}
+          {classes.length === 0 ? (
+            <div className="rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
+              Chưa có hạng phòng.
+            </div>
+          ) : null}
         </div>
       </CardBody>
     </Card>

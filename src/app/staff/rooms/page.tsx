@@ -2,8 +2,11 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
+import type { RoomStatus } from "@prisma/client";
 
-type RoomStatus = "Ready" | "CheckedIn" | "CheckOutProcessing";
+export const dynamic = "force-dynamic";
 
 function statusBadge(status: RoomStatus) {
   if (status === "Ready") return <Badge variant="green">Ready</Badge>;
@@ -11,54 +14,36 @@ function statusBadge(status: RoomStatus) {
   return <Badge variant="amber">CheckOutProcessing</Badge>;
 }
 
-const currentStaff = {
-  name: "Nguyễn Văn An",
-};
+export default async function StaffRoomsPage() {
+  const currentStaff = await getSessionUser();
+  if (!currentStaff) return null;
 
-const rooms = [
-  {
-    roomId: "A-101",
-    className: "Deluxe",
-    location: "Khu A",
-    status: "Ready" as const,
-    assignedTo: "-",
-  },
-  {
-    roomId: "A-102",
-    className: "Deluxe",
-    location: "Khu A",
-    status: "CheckOutProcessing" as const,
-    assignedTo: "Nguyễn Văn An",
-  },
-  {
-    roomId: "B-201",
-    className: "Premium",
-    location: "Khu B",
-    status: "CheckOutProcessing" as const,
-    assignedTo: "Trần Thị Bình",
-  },
-  {
-    roomId: "B-202",
-    className: "Premium",
-    location: "Khu B",
-    status: "CheckedIn" as const,
-    assignedTo: "-",
-  },
-];
+  const rooms = await prisma.room.findMany({
+    orderBy: [{ location: "asc" }, { roomId: "asc" }],
+    include: {
+      roomClass: true,
+      tasks: {
+        where: { status: { in: ["Assigned", "InProgress"] } },
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+        include: { assignedTo: true },
+      },
+    },
+  });
 
-export default function StaffRoomsPage() {
   return (
     <div className="grid gap-6">
       <Card>
         <CardHeader
-          title="Ca làm (demo)"
-          subtitle={`Xin chào, ${currentStaff.name}. Các phòng CheckoutProcessing sẽ tự phân nhân viên.`}
-          right={<Badge variant="neutral">Shift: 07:00–15:00</Badge>}
+          title="Danh sách phòng"
+          subtitle={`Xin chào, ${currentStaff.displayName}.`}
+          right={<Badge variant="neutral">{currentStaff.username}</Badge>}
         />
         <CardBody>
           <div className="grid gap-3 sm:grid-cols-2">
             {rooms.map((r) => {
-              const mine = r.assignedTo === currentStaff.name;
+              const assignedName = r.tasks[0]?.assignedTo?.displayName ?? "-";
+              const mine = r.tasks[0]?.assignedToId === currentStaff.id;
               const canWork = r.status === "CheckOutProcessing" && mine;
               return (
                 <div
@@ -72,13 +57,13 @@ export default function StaffRoomsPage() {
                           {r.roomId}
                         </div>
                         {statusBadge(r.status)}
-                        <Badge variant="neutral">{r.className}</Badge>
+                        <Badge variant="neutral">{r.roomClass.name}</Badge>
                         <Badge variant="neutral">{r.location}</Badge>
                       </div>
                       <div className="mt-2 text-sm text-zinc-600">
                         Assigned:{" "}
                         <span className="font-medium text-zinc-900">
-                          {r.assignedTo}
+                          {assignedName}
                         </span>
                       </div>
                     </div>
@@ -98,10 +83,11 @@ export default function StaffRoomsPage() {
               );
             })}
           </div>
-          <div className="mt-4 text-xs text-zinc-600">
-            Gợi ý UX: với phòng chưa assign cho bạn, nút sẽ disabled; khi nối backend
-            sẽ hiển thị “Nhận task” hoặc “Đang được xử lý bởi …”.
-          </div>
+          {rooms.length === 0 ? (
+            <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
+              Chưa có phòng.
+            </div>
+          ) : null}
         </CardBody>
       </Card>
     </div>

@@ -1,15 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
 
-const employees = [
-  { id: "nv01", name: "Nguyễn Văn An", username: "nv01", active: true, today: 5 },
-  { id: "nv02", name: "Trần Thị Bình", username: "nv02", active: true, today: 6 },
-  { id: "nv03", name: "Lê Quốc Cường", username: "nv03", active: true, today: 3 },
-  { id: "nv04", name: "Phạm Gia Dung", username: "nv04", active: false, today: 0 },
-];
+export const dynamic = "force-dynamic";
 
-export default function AdminEmployeesPage() {
+export default async function AdminEmployeesPage() {
+  const employees = await prisma.user.findMany({
+    where: { role: "STAFF" },
+    orderBy: [{ active: "desc" }, { displayName: "asc" }],
+  });
+
   return (
     <Card>
       <CardHeader
@@ -25,7 +26,6 @@ export default function AdminEmployeesPage() {
                 <th className="px-4 py-3">Tên</th>
                 <th className="px-4 py-3">Username</th>
                 <th className="px-4 py-3">Trạng thái</th>
-                <th className="px-4 py-3">Checkout hôm nay</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -33,7 +33,7 @@ export default function AdminEmployeesPage() {
               {employees.map((e) => (
                 <tr key={e.id} className="hover:bg-zinc-50">
                   <td className="px-4 py-3 font-medium text-zinc-900">
-                    {e.name}
+                    {e.displayName}
                   </td>
                   <td className="px-4 py-3 text-zinc-700">{e.username}</td>
                   <td className="px-4 py-3">
@@ -43,7 +43,6 @@ export default function AdminEmployeesPage() {
                       <Badge variant="neutral">Inactive</Badge>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-zinc-700">{e.today}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-2">
                       <Button variant="ghost" size="sm">
@@ -59,6 +58,11 @@ export default function AdminEmployeesPage() {
             </tbody>
           </table>
         </div>
+        {employees.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
+            Chưa có nhân viên.
+          </div>
+        ) : null}
       </CardBody>
     </Card>
   );

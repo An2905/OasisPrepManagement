@@ -1,8 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import type { RoomStatus } from "@prisma/client";
 
-type RoomStatus = "Ready" | "CheckedIn" | "CheckOutProcessing";
+export const dynamic = "force-dynamic";
 
 function statusBadge(status: RoomStatus) {
   if (status === "Ready") return <Badge variant="green">Ready</Badge>;
@@ -10,38 +12,20 @@ function statusBadge(status: RoomStatus) {
   return <Badge variant="amber">CheckOutProcessing</Badge>;
 }
 
-const rooms = [
-  {
-    roomId: "A-101",
-    className: "Deluxe",
-    location: "Khu A",
-    status: "Ready" as const,
-    assignedTo: "-",
-  },
-  {
-    roomId: "A-102",
-    className: "Deluxe",
-    location: "Khu A",
-    status: "CheckOutProcessing" as const,
-    assignedTo: "Nguyễn Văn An",
-  },
-  {
-    roomId: "B-201",
-    className: "Premium",
-    location: "Khu B",
-    status: "CheckedIn" as const,
-    assignedTo: "-",
-  },
-  {
-    roomId: "C-01",
-    className: "Villa",
-    location: "Khu C",
-    status: "CheckOutProcessing" as const,
-    assignedTo: "Trần Thị Bình",
-  },
-];
+export default async function AdminRoomsPage() {
+  const rooms = await prisma.room.findMany({
+    orderBy: [{ location: "asc" }, { roomId: "asc" }],
+    include: {
+      roomClass: true,
+      tasks: {
+        where: { status: { in: ["Assigned", "InProgress"] } },
+        orderBy: { updatedAt: "desc" },
+        take: 1,
+        include: { assignedTo: true },
+      },
+    },
+  });
 
-export default function AdminRoomsPage() {
   return (
     <Card>
       <CardHeader
@@ -73,10 +57,12 @@ export default function AdminRoomsPage() {
                   <td className="px-4 py-3 font-medium text-zinc-900">
                     {r.roomId}
                   </td>
-                  <td className="px-4 py-3 text-zinc-700">{r.className}</td>
+                  <td className="px-4 py-3 text-zinc-700">{r.roomClass.name}</td>
                   <td className="px-4 py-3 text-zinc-700">{r.location}</td>
                   <td className="px-4 py-3">{statusBadge(r.status)}</td>
-                  <td className="px-4 py-3 text-zinc-700">{r.assignedTo}</td>
+                  <td className="px-4 py-3 text-zinc-700">
+                    {r.tasks[0]?.assignedTo?.displayName ?? "-"}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <Button variant="ghost" size="sm">
                       Sửa
@@ -87,6 +73,11 @@ export default function AdminRoomsPage() {
             </tbody>
           </table>
         </div>
+        {rooms.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
+            Chưa có phòng.
+          </div>
+        ) : null}
       </CardBody>
     </Card>
   );

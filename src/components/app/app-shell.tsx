@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import type React from "react";
+import { LogoutButton } from "@/components/app/logout-button";
 
 export type AppShellNavItem = {
   href: string;
@@ -10,11 +11,13 @@ export type AppShellNavItem = {
 export function AppShell({
   title,
   roleLabel,
+  userName,
   nav,
   children,
 }: {
   title: string;
   roleLabel: "Admin" | "Nhân viên";
+  userName: string;
   nav: AppShellNavItem[];
   children: React.ReactNode;
 }) {
@@ -28,8 +31,8 @@ export function AppShell({
                 <div className="truncate text-sm font-semibold text-zinc-900">
                   {title}
                 </div>
-                <div className="mt-1 text-xs text-zinc-600">
-                  OasisRecepManagement (UI demo)
+                <div className="mt-1 truncate text-xs text-zinc-600">
+                  {userName}
                 </div>
               </div>
               <Badge variant="neutral">{roleLabel}</Badge>
@@ -48,42 +51,26 @@ export function AppShell({
             </nav>
 
             <div className="mt-4 border-t border-zinc-200 pt-4">
-              <div className="text-xs font-medium text-zinc-600">
-                Chuyển nhanh
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2 text-sm">
-                <Link
-                  className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
-                  href="/login"
-                >
-                  Login
-                </Link>
-                <Link
-                  className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
-                  href="/admin/dashboard"
-                >
-                  Admin
-                </Link>
-                <Link
-                  className="rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
-                  href="/staff/rooms"
-                >
-                  Nhân viên
-                </Link>
-              </div>
+              <LogoutButton className="w-full" />
             </div>
           </div>
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-xl font-semibold tracking-tight text-zinc-900">
+              <div className="text-xs font-medium text-zinc-600">
+                <span>OasisPrepManagement</span>
+                <span className="px-2 text-zinc-400">/</span>
+                <span className="text-zinc-900">{title}</span>
+              </div>
+              <div className="mt-2 text-xl font-semibold tracking-tight text-zinc-900">
                 {title}
               </div>
-              <div className="mt-1 text-sm text-zinc-600">
-                Giao diện demo (chưa nối đăng nhập thật).
-              </div>
+            </div>
+            <div className="flex items-center gap-2 sm:hidden">
+              <Badge variant="neutral">{roleLabel}</Badge>
+              <LogoutButton />
             </div>
           </div>
 
