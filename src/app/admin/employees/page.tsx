@@ -3,6 +3,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import {
   CreateStaffInline,
+  DeleteUserButton,
   EditStaffInline,
   ResetPasswordInline,
   ToggleActiveButton,
@@ -12,15 +13,14 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminEmployeesPage() {
   const employees = await prisma.user.findMany({
-    where: { role: "STAFF" },
-    orderBy: [{ active: "desc" }, { displayName: "asc" }],
+    orderBy: [{ role: "asc" }, { active: "desc" }, { displayName: "asc" }],
   });
 
   return (
     <Card>
       <CardHeader
-        title="Nhân viên"
-        subtitle="Admin tạo tài khoản nhân viên (username/password), bật/tắt hoạt động."
+        title="Người dùng"
+        subtitle="Admin tạo tài khoản STAFF/ADMIN, bật/tắt hoạt động, reset mật khẩu và xoá tài khoản."
       />
       <CardBody>
         <div className="mb-5 rounded-2xl border border-zinc-200 bg-white p-4">
@@ -32,6 +32,7 @@ export default async function AdminEmployeesPage() {
               <tr>
                 <th className="px-4 py-3">Tên</th>
                 <th className="px-4 py-3">Username</th>
+                <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3">Trạng thái</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -43,6 +44,11 @@ export default async function AdminEmployeesPage() {
                     {e.displayName}
                   </td>
                   <td className="px-4 py-3 text-zinc-700">{e.username}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={e.role === "ADMIN" ? "blue" : "neutral"}>
+                      {e.role}
+                    </Badge>
+                  </td>
                   <td className="px-4 py-3">
                     {e.active ? (
                       <Badge variant="green">Active</Badge>
@@ -59,6 +65,7 @@ export default async function AdminEmployeesPage() {
                         displayName={e.displayName}
                       />
                       <ResetPasswordInline userId={e.id} />
+                      <DeleteUserButton userId={e.id} />
                     </div>
                   </td>
                 </tr>
@@ -68,7 +75,7 @@ export default async function AdminEmployeesPage() {
         </div>
         {employees.length === 0 ? (
           <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-600">
-            Chưa có nhân viên.
+            Chưa có user.
           </div>
         ) : null}
       </CardBody>

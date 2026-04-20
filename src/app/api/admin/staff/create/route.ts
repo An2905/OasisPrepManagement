@@ -16,6 +16,7 @@ export async function POST(req: Request) {
   const username = body?.username?.trim() ?? "";
   const displayName = body?.displayName?.trim() ?? "";
   const password = body?.password ?? "";
+  const role = (body as { role?: string } | null)?.role === "ADMIN" ? "ADMIN" : "STAFF";
 
   if (!username || !displayName || password.length < 4) {
     return NextResponse.json(
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
       username,
       displayName,
       passwordHash,
-      role: "STAFF",
+      role,
       active: true,
     },
     select: { id: true, username: true, displayName: true },

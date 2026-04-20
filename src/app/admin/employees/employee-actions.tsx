@@ -11,6 +11,7 @@ export function CreateStaffInline() {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"ADMIN" | "STAFF">("STAFF");
   const [loading, setLoading] = useState(false);
   const canSave = useMemo(
     () => username.trim() && displayName.trim() && password.length >= 4,
@@ -23,12 +24,13 @@ export function CreateStaffInline() {
       const res = await fetch("/api/admin/staff/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ username, displayName, password }),
+        body: JSON.stringify({ username, displayName, password, role }),
       });
       if (res.ok) {
         setUsername("");
         setDisplayName("");
         setPassword("");
+        setRole("STAFF");
         setOpen(false);
         router.refresh();
       }
@@ -40,13 +42,13 @@ export function CreateStaffInline() {
   return (
     <div className="grid gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="text-sm font-medium text-zinc-900">Tạo nhân viên</div>
+        <div className="text-sm font-medium text-zinc-900">Tạo tài khoản</div>
         <Button variant="secondary" size="sm" onClick={() => setOpen((v) => !v)}>
           {open ? "Đóng" : "+ Tạo"}
         </Button>
       </div>
       {open ? (
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-4">
           <Input
             placeholder="username (vd: nv02)"
             value={username}
@@ -62,7 +64,15 @@ export function CreateStaffInline() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <div className="sm:col-span-3">
+          <select
+            className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-300"
+            value={role}
+            onChange={(e) => setRole(e.target.value === "ADMIN" ? "ADMIN" : "STAFF")}
+          >
+            <option value="STAFF">STAFF</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+          <div className="sm:col-span-4">
             <Button onClick={onCreate} disabled={!canSave || loading}>
               {loading ? "Đang tạo..." : "Lưu"}
             </Button>
@@ -213,6 +223,36 @@ export function EditStaffInline({
         </Button>
       )}
     </div>
+  );
+}
+
+export function DeleteUserButton({
+  userId,
+}: {
+  userId: string;
+}) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  async function onDelete() {
+    if (!confirm("Xoá tài khoản này?")) return;
+    setLoading(true);
+    try {
+      await fetch("/api/admin/users/delete", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      router.refresh();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Button variant="danger" size="sm" onClick={onDelete} disabled={loading}>
+      {loading ? "..." : "Xoá"}
+    </Button>
   );
 }
 
