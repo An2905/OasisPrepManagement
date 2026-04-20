@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   }
 
   const token = newSessionToken();
-  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7); // 7 days
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 12); // 12 hours
   await prisma.session.create({
     data: {
       token,

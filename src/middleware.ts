@@ -21,10 +21,8 @@ export function middleware(req: NextRequest) {
     if (!token) return redirectToLogin(req);
   }
 
-  if (pathname === "/login" && token) {
-    // Defer role-based redirect to /api/auth/me on client; keep middleware cheap.
-    return NextResponse.redirect(new URL("/", req.url));
-  }
+  // IMPORTANT: Do not redirect away from /login.
+  // Users may want to switch accounts even if a session cookie exists.
 
   return NextResponse.next();
 }
