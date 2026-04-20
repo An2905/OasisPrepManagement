@@ -1,10 +1,9 @@
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import type { RoomStatus } from "@prisma/client";
+import { CheckoutNavButton } from "@/app/staff/rooms/checkout-nav-button";
 
 export const dynamic = "force-dynamic";
 
@@ -68,15 +67,7 @@ export default async function StaffRoomsPage() {
                       </div>
                     </div>
                     <div className="shrink-0">
-                      {canWork ? (
-                        <Link href={`/staff/checkout/${encodeURIComponent(r.roomId)}`}>
-                          <Button size="sm">Checkout</Button>
-                        </Link>
-                      ) : (
-                        <Button size="sm" variant="secondary" disabled>
-                          Checkout
-                        </Button>
-                      )}
+                      <CheckoutNavButton roomId={r.roomId} disabled={!canWork} />
                     </div>
                   </div>
                 </div>
