@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -52,7 +51,7 @@ export function LoginClient() {
   }
 
   return (
-    <div className="min-h-full bg-zinc-50">
+    <div className="min-h-screen bg-zinc-50">
       <main className="mx-auto flex w-full max-w-lg flex-col px-6 py-12">
         <div className="mb-6">
           <div className="text-sm font-medium text-zinc-600">
@@ -69,7 +68,7 @@ export function LoginClient() {
         <Card>
           <CardHeader
             title="Tài khoản"
-            subtitle="Seed để test nhanh: admin/admin123 • nv01/nv123"
+            subtitle="Nhập username và mật khẩu"
           />
           <CardBody>
             <div className="grid gap-3">
@@ -110,35 +109,8 @@ export function LoginClient() {
                 <Button className="w-full" onClick={onSubmit} disabled={loading}>
                   {loading ? "Đang đăng nhập..." : "Đăng nhập"}
                 </Button>
-                <Link href="/">
-                  <Button className="w-full" variant="secondary" disabled={loading}>
-                    Quay lại
-                  </Button>
-                </Link>
-              </div>
-
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                <Button
-                  className="w-full"
-                  variant="ghost"
-                  onClick={() => {
-                    setUsername("admin");
-                    setPassword("admin123");
-                  }}
-                  disabled={loading}
-                >
-                  Điền nhanh Admin
-                </Button>
-                <Button
-                  className="w-full"
-                  variant="ghost"
-                  onClick={() => {
-                    setUsername("nv01");
-                    setPassword("nv123");
-                  }}
-                  disabled={loading}
-                >
-                  Điền nhanh Nhân viên
+                <Button className="w-full" variant="secondary" disabled>
+                  OasisPrepManagement
                 </Button>
               </div>
             </div>
@@ -146,11 +118,7 @@ export function LoginClient() {
         </Card>
 
         <div className="mt-6 text-sm text-zinc-600">
-          Quay lại{" "}
-          <Link className="font-medium text-zinc-900 hover:underline" href="/">
-            trang chủ
-          </Link>
-          .
+          Nếu chưa có tài khoản, hãy tạo user trong database (bạn đang quản lý DB trên Railway).
         </div>
       </main>
     </div>
