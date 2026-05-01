@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import type { RoomStatus } from "@prisma/client";
+import { ROOM_STATUS_LABELS } from "@/lib/room-status";
 import { StartCheckoutButton } from "@/app/admin/rooms/start-checkout-button";
 import { RoomCreateInline } from "@/app/admin/rooms/room-create";
 import { RoomActions } from "@/app/admin/rooms/room-actions";
@@ -9,9 +10,10 @@ import { RoomActions } from "@/app/admin/rooms/room-actions";
 export const dynamic = "force-dynamic";
 
 function statusBadge(status: RoomStatus) {
-  if (status === "Ready") return <Badge variant="green">Ready</Badge>;
-  if (status === "CheckedIn") return <Badge variant="blue">CheckedIn</Badge>;
-  return <Badge variant="amber">CheckOutProcessing</Badge>;
+  const label = ROOM_STATUS_LABELS[status];
+  if (status === "Ready") return <Badge variant="green">{label}</Badge>;
+  if (status === "CheckedIn") return <Badge variant="blue">{label}</Badge>;
+  return <Badge variant="amber">{label}</Badge>;
 }
 
 export default async function AdminRoomsPage() {
@@ -77,6 +79,8 @@ export default async function AdminRoomsPage() {
                         id={r.id}
                         location={r.location}
                         points={r.points}
+                        status={r.status}
+                        checkoutLocked={r.tasks.length > 0}
                         roomClassId={r.roomClassId}
                         roomClasses={roomClasses}
                         canDelete={r.tasks.length === 0}

@@ -2,8 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { RoomStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { manualRoomStatusOptions } from "@/lib/room-status";
 
 export function RoomCreateInline({
   roomClasses,
@@ -15,6 +17,7 @@ export function RoomCreateInline({
   const [roomId, setRoomId] = useState("");
   const [location, setLocation] = useState("");
   const [points, setPoints] = useState("1");
+  const [status, setStatus] = useState<RoomStatus>("Ready");
   const [roomClassId, setRoomClassId] = useState(roomClasses[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
 
@@ -36,11 +39,13 @@ export function RoomCreateInline({
       const res = await fetch("/api/admin/rooms/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ roomId, location, roomClassId, points: p }),
+        body: JSON.stringify({ roomId, location, roomClassId, points: p, status }),
       });
       if (res.ok) {
         setRoomId("");
         setLocation("");
+        setPoints("1");
+        setStatus("Ready");
         setOpen(false);
         router.refresh();
       }
@@ -58,35 +63,67 @@ export function RoomCreateInline({
         </Button>
       </div>
       {open ? (
-        <div className="grid gap-2 sm:grid-cols-4">
-          <Input
-            placeholder="RoomId (vd: A-103)"
-            value={roomId}
-            onChange={(e) => setRoomId(e.target.value)}
-          />
-          <Input
-            placeholder="Location (vd: Khu A)"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-          <Input
-            placeholder="Điểm (vd: 1)"
-            inputMode="numeric"
-            value={points}
-            onChange={(e) => setPoints(e.target.value)}
-          />
-          <select
-            className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-300"
-            value={roomClassId}
-            onChange={(e) => setRoomClassId(e.target.value)}
-          >
-            {roomClasses.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.location})
-              </option>
-            ))}
-          </select>
-          <div className="sm:col-span-4">
+        <div className="grid gap-4">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-xs font-medium text-zinc-600">Room ID</span>
+              <Input
+                placeholder="vd: A-103"
+                value={roomId}
+                onChange={(e) => setRoomId(e.target.value)}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-medium text-zinc-600">Khu / vị trí</span>
+              <Input
+                placeholder="vd: Khu A"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
+            </label>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <label className="grid gap-1">
+              <span className="text-xs font-medium text-zinc-600">Điểm phòng</span>
+              <Input
+                inputMode="numeric"
+                placeholder="1"
+                title="Điểm dùng cân bằng phân công checkout"
+                value={points}
+                onChange={(e) => setPoints(e.target.value)}
+                className="max-w-[8rem]"
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-medium text-zinc-600">Hạng phòng</span>
+              <select
+                className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-300"
+                value={roomClassId}
+                onChange={(e) => setRoomClassId(e.target.value)}
+              >
+                {roomClasses.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({c.location})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-medium text-zinc-600">Trạng thái ban đầu</span>
+              <select
+                className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-300"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as RoomStatus)}
+              >
+                {manualRoomStatusOptions().map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div>
             <Button onClick={onCreate} disabled={!canSave || loading}>
               {loading ? "Đang thêm..." : "Lưu"}
             </Button>

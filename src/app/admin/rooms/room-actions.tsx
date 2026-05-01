@@ -1,14 +1,18 @@
 "use client";
 
+import type { RoomStatus } from "@prisma/client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ROOM_STATUS_LABELS, manualRoomStatusOptions } from "@/lib/room-status";
 
 export function RoomActions({
   id,
   location: initialLocation,
   points: initialPoints,
+  status: initialStatus,
+  checkoutLocked,
   roomClassId: initialRoomClassId,
   roomClasses,
   canDelete,
@@ -16,6 +20,8 @@ export function RoomActions({
   id: string;
   location: string;
   points: number;
+  status: RoomStatus;
+  checkoutLocked: boolean;
   roomClassId: string;
   roomClasses: Array<{ id: string; name: string; location: string }>;
   canDelete: boolean;
@@ -24,6 +30,7 @@ export function RoomActions({
   const [open, setOpen] = useState(false);
   const [location, setLocation] = useState(initialLocation);
   const [points, setPoints] = useState(String(initialPoints));
+  const [status, setStatus] = useState<RoomStatus>(initialStatus);
   const [roomClassId, setRoomClassId] = useState(initialRoomClassId);
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +42,13 @@ export function RoomActions({
       await fetch("/api/admin/rooms/update", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ id, location, roomClassId, points: p }),
+        body: JSON.stringify({
+          id,
+          location,
+          roomClassId,
+          points: p,
+          ...(checkoutLocked ? {} : { status }),
+        }),
       });
       setOpen(false);
       router.refresh();
@@ -82,6 +95,24 @@ export function RoomActions({
               </option>
             ))}
           </select>
+          {checkoutLocked ? (
+            <span className="text-xs text-amber-700" title={ROOM_STATUS_LABELS[initialStatus]}>
+              Trạng thái: {ROOM_STATUS_LABELS[initialStatus]} (khóa)
+            </span>
+          ) : (
+            <select
+              className="h-9 min-w-[9rem] rounded-xl border border-zinc-200 bg-white px-2 text-sm text-zinc-900"
+              value={status}
+              onChange={(e) => setStatus(e.target.value as RoomStatus)}
+              aria-label="Trạng thái phòng"
+            >
+              {manualRoomStatusOptions().map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          )}
           <Button
             size="sm"
             onClick={onSave}
@@ -101,7 +132,21 @@ export function RoomActions({
         </>
       ) : (
         <>
-          <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setLocation(initialLocation);
+              setPoints(String(initialPoints));
+              setStatus(
+                !checkoutLocked && initialStatus === "CheckOutProcessing"
+                  ? "Ready"
+                  : initialStatus,
+              );
+              setRoomClassId(initialRoomClassId);
+              setOpen(true);
+            }}
+          >
             Sửa
           </Button>
           <Button

@@ -3,14 +3,16 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import type { RoomStatus } from "@prisma/client";
+import { ROOM_STATUS_LABELS } from "@/lib/room-status";
 import { CheckoutNavButton } from "@/app/staff/rooms/checkout-nav-button";
 
 export const dynamic = "force-dynamic";
 
 function statusBadge(status: RoomStatus) {
-  if (status === "Ready") return <Badge variant="green">Ready</Badge>;
-  if (status === "CheckedIn") return <Badge variant="blue">CheckedIn</Badge>;
-  return <Badge variant="amber">CheckOutProcessing</Badge>;
+  const label = ROOM_STATUS_LABELS[status];
+  if (status === "Ready") return <Badge variant="green">{label}</Badge>;
+  if (status === "CheckedIn") return <Badge variant="blue">{label}</Badge>;
+  return <Badge variant="amber">{label}</Badge>;
 }
 
 export default async function StaffRoomsPage() {
