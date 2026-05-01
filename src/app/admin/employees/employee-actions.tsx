@@ -1,9 +1,13 @@
 "use client";
 
+import type { StaffShift } from "@prisma/client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { STAFF_SHIFT_LABELS } from "@/lib/shift";
+
+const SHIFT_OPTIONS: StaffShift[] = ["Ca1", "Ca2", "Ca3"];
 
 export function CreateStaffInline() {
   const router = useRouter();
@@ -12,11 +16,12 @@ export function CreateStaffInline() {
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"ADMIN" | "STAFF">("STAFF");
+  const [shift, setShift] = useState<StaffShift>("Ca1");
   const [loading, setLoading] = useState(false);
-  const canSave = useMemo(
-    () => username.trim() && displayName.trim() && password.length >= 4,
-    [username, displayName, password],
-  );
+  const canSave = useMemo(() => {
+    if (!username.trim() || !displayName.trim() || password.length < 4) return false;
+    return true;
+  }, [username, displayName, password]);
 
   async function onCreate() {
     setLoading(true);
@@ -24,7 +29,13 @@ export function CreateStaffInline() {
       const res = await fetch("/api/admin/staff/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ username, displayName, password, role }),
+        body: JSON.stringify({
+          username,
+          displayName,
+          password,
+          role,
+          shift: role === "STAFF" ? shift : undefined,
+        }),
       });
       if (res.ok) {
         setUsername("");
@@ -48,7 +59,7 @@ export function CreateStaffInline() {
         </Button>
       </div>
       {open ? (
-        <div className="grid gap-2 sm:grid-cols-4">
+        <div className="grid gap-2 sm:grid-cols-5">
           <Input
             placeholder="username (vd: nv02)"
             value={username}
@@ -72,7 +83,22 @@ export function CreateStaffInline() {
             <option value="STAFF">STAFF</option>
             <option value="ADMIN">ADMIN</option>
           </select>
-          <div className="sm:col-span-4">
+          {role === "STAFF" ? (
+            <select
+              className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-300"
+              value={shift}
+              onChange={(e) => setShift(e.target.value as StaffShift)}
+            >
+              {SHIFT_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {STAFF_SHIFT_LABELS[s]}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="hidden sm:block" aria-hidden />
+          )}
+          <div className="sm:col-span-5">
             <Button onClick={onCreate} disabled={!canSave || loading}>
               {loading ? "Đang tạo..." : "Lưu"}
             </Button>
@@ -166,15 +192,20 @@ export function EditStaffInline({
   userId,
   username: initialUsername,
   displayName: initialDisplayName,
+  role,
+  shift: initialShift,
 }: {
   userId: string;
   username: string;
   displayName: string;
+  role: "ADMIN" | "STAFF";
+  shift: StaffShift | null;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState(initialUsername);
   const [displayName, setDisplayName] = useState(initialDisplayName);
+  const [shift, setShift] = useState<StaffShift>(initialShift ?? "Ca1");
   const [loading, setLoading] = useState(false);
 
   async function onSave() {
@@ -183,7 +214,12 @@ export function EditStaffInline({
       await fetch("/api/admin/staff/update", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ userId, username, displayName }),
+        body: JSON.stringify({
+          userId,
+          username,
+          displayName,
+          ...(role === "STAFF" ? { shift } : {}),
+        }),
       });
       setOpen(false);
       router.refresh();
@@ -206,6 +242,19 @@ export function EditStaffInline({
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
+          {role === "STAFF" ? (
+            <select
+              className="h-9 rounded-xl border border-zinc-200 bg-white px-2 text-sm text-zinc-900"
+              value={shift}
+              onChange={(e) => setShift(e.target.value as StaffShift)}
+            >
+              {SHIFT_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {STAFF_SHIFT_LABELS[s]}
+                </option>
+              ))}
+            </select>
+          ) : null}
           <Button
             size="sm"
             onClick={onSave}
@@ -218,7 +267,16 @@ export function EditStaffInline({
           </Button>
         </>
       ) : (
-        <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setUsername(initialUsername);
+            setDisplayName(initialDisplayName);
+            setShift(initialShift ?? "Ca1");
+            setOpen(true);
+          }}
+        >
           Sửa
         </Button>
       )}

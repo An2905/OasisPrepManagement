@@ -1,10 +1,21 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { resolveStaffShiftForCheckout, STAFF_SHIFT_LABELS } from "@/lib/shift";
 
 export const runtime = "nodejs";
 
-type Body = { roomId: string };
+type Body = { roomId: string; shift?: unknown };
+
+function workloadPoints(user: {
+  assignedTasks: { room: { points: number } }[];
+  completedTasks: { room: { points: number } }[];
+}) {
+  let sum = 0;
+  for (const t of user.assignedTasks) sum += t.room.points;
+  for (const t of user.completedTasks) sum += t.room.points;
+  return sum;
+}
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -14,6 +25,8 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as Body | null;
   const roomId = body?.roomId?.trim() ?? "";
   if (!roomId) return NextResponse.json({ ok: false, error: "Thiếu roomId." }, { status: 400 });
+
+  const targetShift = resolveStaffShiftForCheckout(body?.shift);
 
   const room = await prisma.room.findUnique({
     where: { roomId },
@@ -32,29 +45,40 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Phòng đã có task đang xử lý." }, { status: 400 });
   }
 
-  // Pick least-loaded active staff (fewest open tasks).
-  const staff = await prisma.user.findMany({
-    where: { role: "STAFF", active: true },
+  const candidates = await prisma.user.findMany({
+    where: { role: "STAFF", active: true, shift: targetShift },
     select: {
       id: true,
       displayName: true,
-      _count: {
-        select: {
-          assignedTasks: { where: { status: { in: ["Assigned", "InProgress"] } } },
-        },
+      assignedTasks: {
+        where: { status: { in: ["Assigned", "InProgress"] } },
+        select: { room: { select: { points: true } } },
+      },
+      completedTasks: {
+        where: { status: "Completed" },
+        select: { room: { select: { points: true } } },
       },
     },
-    orderBy: [
-      { assignedTasks: { _count: "asc" } as never },
-      { displayName: "asc" },
-    ],
-    take: 1,
   });
 
-  const assignee = staff[0];
-  if (!assignee) {
-    return NextResponse.json({ ok: false, error: "Chưa có nhân viên active." }, { status: 400 });
+  if (candidates.length === 0) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `Không có nhân viên active trong ${STAFF_SHIFT_LABELS[targetShift]}.`,
+      },
+      { status: 400 },
+    );
   }
+
+  candidates.sort((a, b) => {
+    const da = workloadPoints(a);
+    const db = workloadPoints(b);
+    if (da !== db) return da - db;
+    return a.displayName.localeCompare(b.displayName, "vi");
+  });
+
+  const assignee = candidates[0];
 
   const task = await prisma.$transaction(async (tx) => {
     await tx.room.update({
@@ -76,6 +100,6 @@ export async function POST(req: Request) {
     ok: true,
     taskId: task.id,
     assignedTo: assignee.displayName,
+    shift: targetShift,
   });
 }
-

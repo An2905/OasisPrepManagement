@@ -14,21 +14,29 @@ export function RoomCreateInline({
   const [open, setOpen] = useState(false);
   const [roomId, setRoomId] = useState("");
   const [location, setLocation] = useState("");
+  const [points, setPoints] = useState("1");
   const [roomClassId, setRoomClassId] = useState(roomClasses[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
 
-  const canSave = useMemo(
-    () => roomId.trim() && location.trim() && roomClassId.trim(),
-    [roomId, location, roomClassId],
-  );
+  const canSave = useMemo(() => {
+    const p = Number.parseInt(points, 10);
+    return (
+      roomId.trim() &&
+      location.trim() &&
+      roomClassId.trim() &&
+      Number.isFinite(p) &&
+      p >= 0
+    );
+  }, [roomId, location, roomClassId, points]);
 
   async function onCreate() {
+    const p = Number.parseInt(points, 10);
     setLoading(true);
     try {
       const res = await fetch("/api/admin/rooms/create", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ roomId, location, roomClassId }),
+        body: JSON.stringify({ roomId, location, roomClassId, points: p }),
       });
       if (res.ok) {
         setRoomId("");
@@ -50,7 +58,7 @@ export function RoomCreateInline({
         </Button>
       </div>
       {open ? (
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 sm:grid-cols-4">
           <Input
             placeholder="RoomId (vd: A-103)"
             value={roomId}
@@ -60,6 +68,12 @@ export function RoomCreateInline({
             placeholder="Location (vd: Khu A)"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+          />
+          <Input
+            placeholder="Điểm (vd: 1)"
+            inputMode="numeric"
+            value={points}
+            onChange={(e) => setPoints(e.target.value)}
           />
           <select
             className="h-10 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-300"
@@ -72,7 +86,7 @@ export function RoomCreateInline({
               </option>
             ))}
           </select>
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-4">
             <Button onClick={onCreate} disabled={!canSave || loading}>
               {loading ? "Đang thêm..." : "Lưu"}
             </Button>

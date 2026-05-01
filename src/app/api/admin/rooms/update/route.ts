@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-type Body = { id: string; location: string; roomClassId: string };
+type Body = { id: string; location: string; roomClassId: string; points?: number };
 
 export async function POST(req: Request) {
   const admin = await getSessionUser();
@@ -15,13 +15,23 @@ export async function POST(req: Request) {
   const id = body?.id?.trim() ?? "";
   const location = body?.location?.trim() ?? "";
   const roomClassId = body?.roomClassId?.trim() ?? "";
+  const points =
+    typeof body?.points === "number" && Number.isFinite(body.points) ? Math.floor(body.points) : null;
+
   if (!id || !location || !roomClassId) {
     return NextResponse.json({ ok: false, error: "Thiếu dữ liệu." }, { status: 400 });
+  }
+  if (points !== null && points < 0) {
+    return NextResponse.json({ ok: false, error: "Điểm phòng >= 0." }, { status: 400 });
   }
 
   await prisma.room.update({
     where: { id },
-    data: { location, roomClassId },
+    data: {
+      location,
+      roomClassId,
+      ...(points !== null ? { points } : {}),
+    },
   });
 
   return NextResponse.json({ ok: true });

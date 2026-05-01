@@ -28,8 +28,8 @@ export default async function StaffHistoryPage() {
         subtitle="Các lượt checkout đã hoàn thành gần đây."
       />
       <CardBody>
-        <div className="overflow-hidden rounded-2xl border border-zinc-200">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-zinc-200">
+          <table className="min-w-[760px] w-full text-left text-sm">
             <thead className="bg-zinc-50 text-xs font-medium text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Phòng</th>

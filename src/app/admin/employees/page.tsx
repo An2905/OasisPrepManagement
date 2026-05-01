@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
+import { STAFF_SHIFT_LABELS } from "@/lib/shift";
 import {
   CreateStaffInline,
   DeleteUserButton,
@@ -26,13 +27,14 @@ export default async function AdminEmployeesPage() {
         <div className="mb-5 rounded-2xl border border-zinc-200 bg-white p-4">
           <CreateStaffInline />
         </div>
-        <div className="overflow-hidden rounded-2xl border border-zinc-200">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-zinc-200">
+          <table className="min-w-[1080px] w-full text-left text-sm">
             <thead className="bg-zinc-50 text-xs font-medium text-zinc-600">
               <tr>
                 <th className="px-4 py-3">Tên</th>
                 <th className="px-4 py-3">Username</th>
                 <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Ca</th>
                 <th className="px-4 py-3">Trạng thái</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -49,6 +51,9 @@ export default async function AdminEmployeesPage() {
                       {e.role}
                     </Badge>
                   </td>
+                  <td className="px-4 py-3 text-zinc-700">
+                    {e.role === "STAFF" && e.shift ? STAFF_SHIFT_LABELS[e.shift] : "—"}
+                  </td>
                   <td className="px-4 py-3">
                     {e.active ? (
                       <Badge variant="green">Active</Badge>
@@ -63,6 +68,8 @@ export default async function AdminEmployeesPage() {
                         userId={e.id}
                         username={e.username}
                         displayName={e.displayName}
+                        role={e.role}
+                        shift={e.shift}
                       />
                       <ResetPasswordInline userId={e.id} />
                       <DeleteUserButton userId={e.id} />

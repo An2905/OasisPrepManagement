@@ -36,19 +36,20 @@ export default async function AdminRoomsPage() {
     <Card>
       <CardHeader
         title="Phòng"
-        subtitle="CRUD phòng theo hạng phòng. Khi chuyển trạng thái checkout, hệ thống sẽ tự phân nhân viên."
+        subtitle="CRUD phòng theo hạng phòng. Điểm phòng dùng cân bằng tải: khi bắt đầu checkout, nhân viên trong ca có tổng điểm (đã làm + đang làm) thấp nhất được nhận việc."
       />
       <CardBody>
         <div className="mb-5 rounded-2xl border border-zinc-200 bg-white p-4">
           <RoomCreateInline roomClasses={roomClasses} />
         </div>
-        <div className="overflow-hidden rounded-2xl border border-zinc-200">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-2xl border border-zinc-200">
+          <table className="min-w-[820px] w-full text-left text-sm">
             <thead className="bg-zinc-50 text-xs font-medium text-zinc-600">
               <tr>
                 <th className="px-4 py-3">RoomId</th>
                 <th className="px-4 py-3">Class</th>
                 <th className="px-4 py-3">Location</th>
+                <th className="px-4 py-3">Điểm</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Assigned</th>
                 <th className="px-4 py-3"></th>
@@ -62,6 +63,7 @@ export default async function AdminRoomsPage() {
                   </td>
                   <td className="px-4 py-3 text-zinc-700">{r.roomClass.name}</td>
                   <td className="px-4 py-3 text-zinc-700">{r.location}</td>
+                  <td className="px-4 py-3 tabular-nums text-zinc-700">{r.points}</td>
                   <td className="px-4 py-3">{statusBadge(r.status)}</td>
                   <td className="px-4 py-3 text-zinc-700">
                     {r.tasks[0]?.assignedTo?.displayName ?? "-"}
@@ -74,6 +76,7 @@ export default async function AdminRoomsPage() {
                       <RoomActions
                         id={r.id}
                         location={r.location}
+                        points={r.points}
                         roomClassId={r.roomClassId}
                         roomClasses={roomClasses}
                         canDelete={r.tasks.length === 0}
