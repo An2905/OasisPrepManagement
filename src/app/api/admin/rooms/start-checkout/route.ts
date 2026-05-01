@@ -38,8 +38,15 @@ export async function POST(req: Request) {
     },
   });
   if (!room) return NextResponse.json({ ok: false, error: "Không tìm thấy phòng." }, { status: 404 });
-  if (room.status === "CheckOutProcessing") {
-    return NextResponse.json({ ok: false, error: "Phòng đang checkout." }, { status: 400 });
+  if (room.status !== "CheckedIn") {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          "Chỉ bắt đầu checkout khi phòng đang «Có khách». Luồng: Sẵn sàng → Có khách → Bắt đầu checkout.",
+      },
+      { status: 400 },
+    );
   }
   if (room.tasks.length > 0) {
     return NextResponse.json({ ok: false, error: "Phòng đã có task đang xử lý." }, { status: 400 });

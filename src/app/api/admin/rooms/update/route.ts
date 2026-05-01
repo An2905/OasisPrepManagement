@@ -2,7 +2,7 @@ import type { RoomStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { isManualRoomStatus } from "@/lib/room-status";
+import { validateAdminRoomStatusTransition } from "@/lib/room-status";
 
 export const runtime = "nodejs";
 
@@ -34,17 +34,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Điểm phòng >= 0." }, { status: 400 });
   }
 
-  let nextStatus: RoomStatus | undefined;
-  if (statusRaw !== undefined && statusRaw !== null && statusRaw !== "") {
-    if (!isManualRoomStatus(String(statusRaw))) {
-      return NextResponse.json(
-        { ok: false, error: "Chỉ đổi được Sẵn sàng / Có khách từ đây; checkout dùng nút riêng." },
-        { status: 400 },
-      );
-    }
-    nextStatus = statusRaw as RoomStatus;
-  }
-
   const room = await prisma.room.findUnique({
     where: { id },
     include: {
@@ -56,27 +45,40 @@ export async function POST(req: Request) {
   });
   if (!room) return NextResponse.json({ ok: false, error: "Không tìm thấy phòng." }, { status: 404 });
 
-  const hasActiveCheckout = room.tasks.length > 0;
-  if (hasActiveCheckout && nextStatus !== undefined) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Đang có task checkout — hoàn tất checklist trước khi đổi trạng thái.",
-      },
-      { status: 400 },
-    );
+  let statusToApply: RoomStatus | undefined;
+  if (statusRaw !== undefined && statusRaw !== null && `${statusRaw}`.trim() !== "") {
+    const parsed = validateAdminRoomStatusTransition(room.status, String(statusRaw));
+    if (!parsed.ok) return NextResponse.json({ ok: false, error: parsed.message }, { status: 400 });
+    if (parsed.next !== null) statusToApply = parsed.next;
   }
 
-  await prisma.room.update({
-    where: { id },
-    data: {
-      location,
-      roomClassId,
-      ...(points !== null ? { points } : {}),
-      ...(nextStatus !== undefined ? { status: nextStatus } : {}),
-    },
+  const hasActiveCheckout = room.tasks.length > 0;
+  const leavingCheckout =
+    hasActiveCheckout &&
+    statusToApply !== undefined &&
+    statusToApply !== "CheckOutProcessing";
+
+  await prisma.$transaction(async (tx) => {
+    if (leavingCheckout) {
+      await tx.checkOutTask.updateMany({
+        where: {
+          roomId: room.id,
+          status: { in: ["Assigned", "InProgress"] },
+        },
+        data: { status: "Cancelled" },
+      });
+    }
+
+    await tx.room.update({
+      where: { id },
+      data: {
+        location,
+        roomClassId,
+        ...(points !== null ? { points } : {}),
+        ...(statusToApply !== undefined ? { status: statusToApply } : {}),
+      },
+    });
   });
 
   return NextResponse.json({ ok: true });
 }
-

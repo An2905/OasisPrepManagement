@@ -38,7 +38,7 @@ export default async function AdminRoomsPage() {
     <Card>
       <CardHeader
         title="Phòng"
-        subtitle="CRUD phòng theo hạng phòng. Điểm phòng dùng cân bằng tải: khi bắt đầu checkout, nhân viên trong ca có tổng điểm (đã làm + đang làm) thấp nhất được nhận việc."
+        subtitle="Luồng: Sẵn sàng → Có khách → nút «Bắt đầu checkout» → nhân viên xử lý → Sẵn sàng. Admin có thể sửa phòng kể cả lúc đang checkout; đổi trạng thái khỏi «Đang checkout» sẽ huỷ task đang giao. Điểm phòng dùng cân bằng phân công theo ca."
       />
       <CardBody>
         <div className="mb-5 rounded-2xl border border-zinc-200 bg-white p-4">
@@ -72,7 +72,7 @@ export default async function AdminRoomsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="inline-flex gap-2">
-                      {r.status !== "CheckOutProcessing" ? (
+                      {r.status === "CheckedIn" && r.tasks.length === 0 ? (
                         <StartCheckoutButton roomId={r.roomId} />
                       ) : null}
                       <RoomActions
@@ -80,7 +80,6 @@ export default async function AdminRoomsPage() {
                         location={r.location}
                         points={r.points}
                         status={r.status}
-                        checkoutLocked={r.tasks.length > 0}
                         roomClassId={r.roomClassId}
                         roomClasses={roomClasses}
                         canDelete={r.tasks.length === 0}

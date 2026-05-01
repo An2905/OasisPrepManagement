@@ -5,14 +5,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ROOM_STATUS_LABELS, manualRoomStatusOptions } from "@/lib/room-status";
+import { adminRoomStatusSelectOptions } from "@/lib/room-status";
 
 export function RoomActions({
   id,
   location: initialLocation,
   points: initialPoints,
   status: initialStatus,
-  checkoutLocked,
   roomClassId: initialRoomClassId,
   roomClasses,
   canDelete,
@@ -21,7 +20,6 @@ export function RoomActions({
   location: string;
   points: number;
   status: RoomStatus;
-  checkoutLocked: boolean;
   roomClassId: string;
   roomClasses: Array<{ id: string; name: string; location: string }>;
   canDelete: boolean;
@@ -47,7 +45,7 @@ export function RoomActions({
           location,
           roomClassId,
           points: p,
-          ...(checkoutLocked ? {} : { status }),
+          status,
         }),
       });
       setOpen(false);
@@ -95,24 +93,23 @@ export function RoomActions({
               </option>
             ))}
           </select>
-          {checkoutLocked ? (
-            <span className="text-xs text-amber-700" title={ROOM_STATUS_LABELS[initialStatus]}>
-              Trạng thái: {ROOM_STATUS_LABELS[initialStatus]} (khóa)
-            </span>
-          ) : (
-            <select
-              className="h-9 min-w-[9rem] rounded-xl border border-zinc-200 bg-white px-2 text-sm text-zinc-900"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as RoomStatus)}
-              aria-label="Trạng thái phòng"
-            >
-              {manualRoomStatusOptions().map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          )}
+          <select
+            className="h-9 min-w-[10rem] rounded-xl border border-zinc-200 bg-white px-2 text-sm text-zinc-900"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as RoomStatus)}
+            aria-label="Trạng thái phòng"
+            title={
+              initialStatus !== "CheckOutProcessing"
+                ? "Đặt «Có khách» trước khi dùng nút checkout"
+                : "Chọn Sẵn sàng hoặc Có khách để huỷ checkout và huỷ task đang giao"
+            }
+          >
+            {adminRoomStatusSelectOptions(initialStatus).map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
           <Button
             size="sm"
             onClick={onSave}
@@ -138,11 +135,7 @@ export function RoomActions({
             onClick={() => {
               setLocation(initialLocation);
               setPoints(String(initialPoints));
-              setStatus(
-                !checkoutLocked && initialStatus === "CheckOutProcessing"
-                  ? "Ready"
-                  : initialStatus,
-              );
+              setStatus(initialStatus);
               setRoomClassId(initialRoomClassId);
               setOpen(true);
             }}
@@ -163,4 +156,3 @@ export function RoomActions({
     </div>
   );
 }
-

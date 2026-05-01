@@ -121,6 +121,9 @@ export function RoomCreateInline({
                   </option>
                 ))}
               </select>
+              <span className="text-[11px] leading-snug text-zinc-500">
+                Mặc định «Sẵn sàng». Check-in là thủ công: đặt «Có khách» lúc tạo hoặc trong Sửa phòng trước khi checkout.
+              </span>
             </label>
           </div>
           <div>
